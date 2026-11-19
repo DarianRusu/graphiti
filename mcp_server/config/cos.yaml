@@ -11,7 +11,7 @@ server:
   port: 8000
   
 llm:
-  provider: "codex_cli"
+  provider: "codex_backend"
   model: ${MODEL_NAME:gpt-6-luna}
   max_tokens: 4096
   # Use json_object for OpenAI-compatible providers that accept json_schema

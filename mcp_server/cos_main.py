@@ -2,6 +2,7 @@
 """
 Entry point for the cos deployment. Registers extra providers, then starts the stock server:
 
+- llm.provider "codex_backend": CodexBackendClient, which calls the Codex backend directly on a ChatGPT subscription
 - llm.provider "codex_cli": CodexCLIClient, which runs `codex exec` on a ChatGPT subscription
 - llm.provider "claude_cli": ClaudeCLIClient, which runs `claude -p` on a Claude subscription
 - embedder.provider "sentence_transformers": a local CPU embedder
@@ -14,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
 from cos_providers.claude_cli_client import ClaudeCLIClient
+from cos_providers.codex_backend_client import CodexBackendClient
 from cos_providers.codex_cli_client import CodexCLIClient
 from graphiti_core.llm_client.config import LLMConfig as CoreLLMConfig
 
@@ -25,6 +27,15 @@ stock_embedder_create = factories.EmbedderFactory.create
 
 def llm_create(config):
     match config.provider.lower():
+        case 'codex_backend':
+            return CodexBackendClient(
+                config=CoreLLMConfig(
+                    model=os.environ.get('CODEX_MODEL', 'gpt-6.2-sol'),
+                    small_model=os.environ.get('CODEX_SMALL_MODEL') or None,
+                    max_tokens=config.max_tokens,
+                ),
+                reasoning_effort=os.environ.get('CODEX_REASONING_EFFORT', 'low') or None,
+            )
         case 'codex_cli':
             return CodexCLIClient(
                 config=CoreLLMConfig(
